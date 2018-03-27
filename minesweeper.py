@@ -21,9 +21,10 @@ class Board(object):
         self.board = defaultdict(dict)
         self.height = height
         self.width = width
+        self.mine_num = mine_num
+        self.square_qty = height * width
 
-        square_qty = height * width
-        mine_locs = sample(range(square_qty), mine_num)
+        mine_locs = sample(range(self.square_qty), mine_num)
 
         for i in range(height):
             for j in range(width):
@@ -92,7 +93,7 @@ class Board(object):
                         print '[*]',
                     else:
                         mines = self._count_touching_mines(row, col)
-                        print '[{}]'.format(mines),
+                        print ' {} '.format(mines),
                 elif self.board[row][col].flagged:
                     print '[?]',
                 else:
@@ -105,6 +106,7 @@ class Minesweeper(object):
     def __init__(self):
         self.keep_playing = True
         self.current_game = Board()
+        self._click_qty = 0
         self.start_game()
 
     def start_game(self):
@@ -114,10 +116,28 @@ class Minesweeper(object):
         response = raw_input('Current board is 10x10 with 20 mines. Press enter to begin, or type CUSTOM to modify board. > ')
 
         if response.lower() == 'custom':
-            pass   # NEED TO UPDATE WITH CUSTOMIZE OPTIONS
+            rows = raw_input('How many rows? > ')
+            cols = raw_input('How many columns? > ')
+            mines = raw_input('How many mines? > ')
+
+            try:
+                self.current_game = Board(int(mines), int(rows), int(cols))
+            except:
+                print 'Not valid choices. Try again.'
 
         print '\nType SHOW BOARD at any time to see current status.\n'
         self.play_game()
+
+    def is_win(self):
+        """Check if all non-mine squares have been clicked."""
+
+        self._click_qty += 1
+
+        if self._click_qty == (self.current_game.square_qty -
+                               self.current_game.mine_num):
+            return True
+
+        return False
 
     def play_game(self):
         """Continues play with user input."""
@@ -166,6 +186,11 @@ class Minesweeper(object):
                     self.keep_playing = False
 
                 self.current_game.click_square(row, col)
+
+                if self.is_win():
+                    print 'Congratulations! You won!'
+                    self.keep_playing = False
+
             self.current_game.display_board()
 
 new_game = Minesweeper()
