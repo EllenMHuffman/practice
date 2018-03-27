@@ -7,10 +7,11 @@ class Square(object):
     def __init__(self):
         """Creates minesweeper square with mine and clicked attributes."""
         self.clicked = False
+        self.flagged = False
         self._mine = False
 
     def __repr__(self):
-        return "<Sq clicked: {} mine: {}>".format(self.clicked, self._mine)
+        return "<Sq clicked: {}>".format(self.clicked, self._mine)
 
 
 class Board(object):
@@ -42,13 +43,14 @@ class Board(object):
         neighbors = []
         mines_qty = 0
 
-        for i in range(row - 1, row + 2):
-            if i >= 0 and i <= self.height:
+        for i in range(-1, 2):
+            row_index = row + i
+            if row_index >= 0 and row_index < self.height:
                 if col > 0:
-                    neighbors.append((i, col - 1))
-                if col < self.width:
-                    neighbors.append((i, col + 1))
-                neighbors.append((i, col))
+                    neighbors.append((row_index, col - 1))
+                if col < self.width - 1:
+                    neighbors.append((row_index, col + 1))
+                neighbors.append((row_index, col))
 
         for neighbor in neighbors:
             if self.board[neighbor[0]][neighbor[1]]._mine:
@@ -65,10 +67,37 @@ class Board(object):
         else:
             self.board[row][col].clicked = True
 
+    def flag_square(self, row, col):
+        """Flags a square with a question mark."""
+
+        self.board[row][col].flagged = True
+
     def is_mine(self, row, col):
         """Returns True if specified row and col is a mine."""
 
         return self.board[row][col]._mine
+
+    def display_board(self):
+        """Visually represent state of board."""
+
+        print ' ',
+        for n in range(self.width):
+            print ' {} '.format(n),
+        print ''
+        for i, row in enumerate(self.board):
+            print i,
+            for col in self.board[row]:
+                if self.board[row][col].clicked:
+                    if self.board[row][col]._mine:
+                        print '[*]',
+                    else:
+                        mines = self._count_touching_mines(row, col)
+                        print '[{}]'.format(mines),
+                elif self.board[row][col].flagged:
+                    print '[?]',
+                else:
+                    print '[ ]',
+            print '\n'
 
 
 class Minesweeper(object):
@@ -93,8 +122,11 @@ class Minesweeper(object):
     def play_game(self):
         """Continues play with user input."""
 
+        self.current_game.display_board()
+
         while self.keep_playing:
             choice = raw_input('Choose a square (row, col) > ')
+            print '\n'
 
             if choice[0] == 'q':
                 print 'Thanks for playing!'
@@ -102,21 +134,38 @@ class Minesweeper(object):
                 continue
 
             if choice.lower() == 'show board':
-                print self.current_game.board
-                continue
-            try:
-                row, col = int(choice[0]), int(choice[-1])
-            except ValueError:
-                print 'Not a valid choice.'
+                self.current_game.display_board()
                 continue
 
-            if row > self.current_game.height or col > self.current_game.width:
-                print 'Not a valid choice. Your board is {}x{}'.format(self.current_game.height, self.current_game.width)
+            if choice[:4].lower() == 'flag':
+                try:
+                    row, col = int(choice[5]), int(choice[-1])
+                except ValueError:
+                    print 'Not a valid choice.'
+                    continue
 
-            if self.current_game.is_mine(row, col):
-                print 'You chose a mine :('
-                self.keep_playing = False
+                if row > self.current_game.height or col > self.current_game.width:
+                    print 'Not a valid choice. Your board is {}x{}'.format(self.current_game.height, self.current_game.width)
+                    continue
 
-            self.current_game.click_square(row, col)
+                self.current_game.flag_square(row, col)
+
+            else:
+                try:
+                    row, col = int(choice[0]), int(choice[-1])
+                except ValueError:
+                    print 'Not a valid choice.'
+                    continue
+
+                if row > self.current_game.height or col > self.current_game.width:
+                    print 'Not a valid choice. Your board is {}x{}'.format(self.current_game.height, self.current_game.width)
+                    continue
+
+                if self.current_game.is_mine(row, col):
+                    print 'You landed on a mine :('
+                    self.keep_playing = False
+
+                self.current_game.click_square(row, col)
+            self.current_game.display_board()
 
 new_game = Minesweeper()
