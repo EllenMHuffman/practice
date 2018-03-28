@@ -1,5 +1,5 @@
 from time import sleep
-import urllib
+from urlparse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -57,7 +57,7 @@ def find_first_link(url):
         return
 
     # Build a full url from the relative article_link url
-    first_link = urllib.parse.urljoin('https://en.wikipedia.org/', article_link)
+    first_link = urljoin('https://en.wikipedia.org/', article_link)
 
     return first_link
 
