@@ -154,13 +154,16 @@ class Minesweeper(object):
     def validate_choice(self, choice):
         """Validates whether user's square choice is a valid selection."""
         try:
-            row, col = int(choice[0]), int(choice[-1])
+            row, col = choice.split(',')
+            row, col = int(row), int(col)
         except ValueError:
             print('Not a valid choice.')
 
             return False
 
-        if row > self.current_game.height or col > self.current_game.width:
+        if ((row > self.current_game.height or row < 0)
+                or (col > self.current_game.width or col < 0)):
+
             print('Not a valid choice. Your board is {}x{}'.format(self.current_game.height, self.current_game.width))
 
             return False
