@@ -3,11 +3,11 @@ from random import sample
 
 class Square(object):
 
-    def __init__(self):
+    def __init__(self, mine):
         """Creates minesweeper square with mine and clicked attributes."""
         self.clicked = False
         self.flagged = False
-        self._mine = False
+        self._mine = mine
 
     def __repr__(self):
         return "<Square clicked: {} mine: {}>".format(self.clicked, self._mine)
@@ -25,16 +25,21 @@ class Board(object):
         self.click_count = 0
 
         mine_locs = sample(range(self.square_count), mine_num)
-
-        for i in range(height):
-            for j in range(width):
-                self.board[i][j] = Square()
+        mine_coordinates = set()
 
         for mine in mine_locs:
             row = int(mine / height)
             col = int(mine % width)
 
-            self.board[row][col]._mine = True
+            mine_coordinates.add((row, col))
+
+        for i in range(height):
+            for j in range(width):
+                mine = False
+                if (i, j) in mine_coordinates:
+                    mine = True
+
+                self.board[i][j] = Square(mine)
 
     def __repr__(self):
         return "<Board {}>".format(self.board)
