@@ -1,4 +1,3 @@
-from collections import defaultdict
 from random import sample
 
 
@@ -11,67 +10,66 @@ class Square(object):
         self._mine = False
 
     def __repr__(self):
-        return "<Sq clicked: {}>".format(self.clicked, self._mine)
+        return "<Square clicked: {} mine: {}>".format(self.clicked, self._mine)
 
 
 class Board(object):
 
     def __init__(self, mine_num=20, height=10, width=10):
         """Creates a 10x10 board with specified number of mines."""
-        self.board = defaultdict(dict)
+        self.board = [[None] * width for _ in range(height)]
         self.height = height
         self.width = width
         self.mine_num = mine_num
-        self.square_qty = height * width
+        self.square_count = height * width
+        self.click_count = 0
 
-        mine_locs = sample(range(self.square_qty), mine_num)
+        mine_locs = sample(range(self.square_count), mine_num)
 
         for i in range(height):
             for j in range(width):
                 self.board[i][j] = Square()
 
         for mine in mine_locs:
-            row = mine / height
-            col = mine % width
+            row = int(mine / height)
+            col = int(mine % width)
 
             self.board[row][col]._mine = True
 
     def __repr__(self):
-        return "<{}>".format(self.board)
+        return "<Board {}>".format(self.board)
 
     def _count_touching_mines(self, row, col):
         """Returns the number of mines surrounding given square."""
-        neighbors = []
-        mines_qty = 0
+        mines_count = 0
 
         for i in range(-1, 2):
             row_index = row + i
             if row_index >= 0 and row_index < self.height:
                 if col > 0:
-                    neighbors.append((row_index, col - 1))
+                    if self.board[row_index][col - 1]._mine:
+                        mines_count += 1
                 if col < self.width - 1:
-                    neighbors.append((row_index, col + 1))
-                neighbors.append((row_index, col))
+                    if self.board[row_index][col + 1]._mine:
+                        mines_count += 1
+                if self.board[row_index][col]._mine:
+                    mines_count += 1
 
-        for neighbor in neighbors:
-            if self.board[neighbor[0]][neighbor[1]]._mine:
-                mines_qty += 1
-
-        return mines_qty
+        return mines_count
 
     def click_square(self, row, col):
         """Updates clicked to True on game board for specified row and col."""
 
         if self.board[row][col].clicked:
-            print self.board[row][col]
-            print 'You already clicked that square. Choose another.'
+            print('You already clicked that square. Choose another.')
         else:
             self.board[row][col].clicked = True
+            self.click_count += 1
 
     def flag_square(self, row, col):
         """Flags a square with a question mark."""
 
-        self.board[row][col].flagged = True
+        self.board[row][col].flagged = not self.board[row][col].flagged
 
     def is_mine(self, row, col):
         """Returns True if specified row and col is a mine."""
@@ -81,115 +79,134 @@ class Board(object):
     def display_board(self):
         """Visually represent state of board."""
 
-        print ' ',
+        print(' ', end='')
         for n in range(self.width):
-            print ' {} '.format(n),
-        print ''
+            print(' {} '.format(n), end=''),
+        print('\n', end='')
         for i, row in enumerate(self.board):
-            print i,
-            for col in self.board[row]:
-                if self.board[row][col].clicked:
-                    if self.board[row][col]._mine:
-                        print '[*]',
+            print(i, end='')
+            for j, col in enumerate(self.board[i]):
+                if self.board[i][j].clicked:
+                    if self.board[i][j]._mine:
+                        print('[*]', end='')
                     else:
-                        mines = self._count_touching_mines(row, col)
-                        print ' {} '.format(mines),
-                elif self.board[row][col].flagged:
-                    print '[?]',
+                        mines = self._count_touching_mines(i, j)
+                        print(' {} '.format(mines), end='')
+                elif self.board[i][j].flagged:
+                    print('[?]', end='')
                 else:
-                    print '[ ]',
-            print '\n'
+                    print('[ ]', end='')
+            print('\n', end='')
+
+    def reveal_mines(self):
+        """Visually represent state of board to reveal all mines."""
+
+        print(' ', end='')
+        for n in range(self.width):
+            print(' {} '.format(n), end=''),
+        print('\n', end='')
+        for i, row in enumerate(self.board):
+            print(i, end='')
+            for j, col in enumerate(self.board[i]):
+                if self.board[i][j]._mine:
+                    print('[*]', end='')
+                elif self.board[i][j].clicked:
+                    mines = self._count_touching_mines(i, j)
+                    print(' {} '.format(mines), end='')
+                else:
+                    print('[ ]', end='')
+            print('\n', end='')
 
 
 class Minesweeper(object):
 
     def __init__(self):
-        self.keep_playing = True
         self.current_game = Board()
-        self._click_qty = 0
         self.start_game()
 
     def start_game(self):
         """Initiates minesweeper game."""
 
-        print 'Welcome to Minesweeper!'
-        response = raw_input('Current board is 10x10 with 20 mines. Press enter to begin, or type CUSTOM to modify board. > ')
+        print('Welcome to Minesweeper!')
+        response = input('Current board is 10x10 with 20 mines. Press enter to begin, or type CUSTOM to modify board. > ')
 
         if response.lower() == 'custom':
-            rows = raw_input('How many rows? > ')
-            cols = raw_input('How many columns? > ')
-            mines = raw_input('How many mines? > ')
-
             try:
-                self.current_game = Board(int(mines), int(rows), int(cols))
-            except:
-                print 'Not valid choices. Try again.'
+                rows = int(input('How many rows? > '))
+                cols = int(input('How many columns? > '))
+                mines = int(input('How many mines? > '))
+                self.current_game = Board(mines, rows, cols)
+            except ValueError:
+                print('Not valid choice. Default settings applied. \n')
 
-        print '\nType SHOW BOARD at any time to see current status.\n'
+        print('\nType SHOW BOARD at any time to see current status.\n')
         self.play_game()
 
     def is_win(self):
         """Check if all non-mine squares have been clicked."""
 
-        self._click_qty += 1
-
-        if self._click_qty == (self.current_game.square_qty -
-                               self.current_game.mine_num):
+        if self.current_game.click_count == (self.current_game.square_count -
+                                             self.current_game.mine_num):
             return True
 
         return False
+
+    def validate_choice(self, choice):
+        """Validates whether user's square choice is a valid selection."""
+        try:
+            row, col = int(choice[0]), int(choice[-1])
+        except ValueError:
+            print('Not a valid choice.')
+
+            return False
+
+        if row > self.current_game.height or col > self.current_game.width:
+            print('Not a valid choice. Your board is {}x{}'.format(self.current_game.height, self.current_game.width))
+
+            return False
+
+        return True
 
     def play_game(self):
         """Continues play with user input."""
 
         self.current_game.display_board()
 
-        while self.keep_playing:
-            choice = raw_input('Choose a square (row, col) > ')
-            print '\n'
+        while True:
+            choice = input('Choose a square (row, col) > ')
+            print('\n')
 
             if choice[0] == 'q':
-                print 'Thanks for playing!'
-                self.keep_playing = False
-                continue
+                print('Thanks for playing!')
+                break
 
             if choice.lower() == 'show board':
                 self.current_game.display_board()
                 continue
 
             if choice[:4].lower() == 'flag':
-                try:
-                    row, col = int(choice[5]), int(choice[-1])
-                except ValueError:
-                    print 'Not a valid choice.'
+                if not self.validate_choice(choice[5:]):
                     continue
-
-                if row > self.current_game.height or col > self.current_game.width:
-                    print 'Not a valid choice. Your board is {}x{}'.format(self.current_game.height, self.current_game.width)
-                    continue
-
+                row, col = int(choice[5]), int(choice[-1])
                 self.current_game.flag_square(row, col)
 
             else:
-                try:
-                    row, col = int(choice[0]), int(choice[-1])
-                except ValueError:
-                    print 'Not a valid choice.'
+                if not self.validate_choice(choice):
                     continue
 
-                if row > self.current_game.height or col > self.current_game.width:
-                    print 'Not a valid choice. Your board is {}x{}'.format(self.current_game.height, self.current_game.width)
-                    continue
+                row, col = int(choice[0]), int(choice[-1])
 
                 if self.current_game.is_mine(row, col):
-                    print 'You landed on a mine :('
-                    self.keep_playing = False
+                    print('You landed on a mine :(')
+                    self.current_game.reveal_mines()
+                    break
 
                 self.current_game.click_square(row, col)
 
                 if self.is_win():
-                    print 'Congratulations! You won!'
-                    self.keep_playing = False
+                    print('Congratulations! You won!')
+                    self.current_game.reveal_mines()
+                    break
 
             self.current_game.display_board()
 
