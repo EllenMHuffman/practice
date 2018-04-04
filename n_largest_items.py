@@ -3,7 +3,7 @@
 
 
 def find_k_largest(k, numbers):
-    """Find the k largest elements in given list. O(n) runtime."""
+    """Find the k largest elements in given list. O(nk) runtime."""
 
     largest = numbers[0]
 
