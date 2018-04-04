@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <title>Test Quiz</title>
+</head>
+<body>
+  <div>
+    <h1>Test Quiz</h1>
+    <form>
+      <div id='q1'>
+        Question 1: <input type='text' name='q1'>
+        <button id='a1'>Next</button>
+      </div>
+      <div id='q2'>
+        Question 2: <input type='text' name='q2'>
+        <button id='a2'>Next</button>
+      </div>
+      <div id='q3'>
+        Question 3: <input id='q3' type='text' name='q3'>
+        <button id='a3'>Next</button>
+      </div>
+      <div id='submit'>
+        <button type='submit'>Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="text/javascript">
+    let q1 = document.getElementById('q1');
+    let a1 = document.getElementById('a1');
+    let q2 = document.getElementById('q2');
+    let a2 = document.getElementById('a2');
+    let q3 = document.getElementById('q3');
+    let a3 = document.getElementById('a3');
+    let submit = document.getElementById('submit');
+
+    function startingState() {
+      q2.style.display = 'none';
+      q3.style.display = 'none';
+      submit.style.display = 'none';
+    }
+
+    function stepOne(resolve) {
+      q1.style.display = 'none';
+      q2.style.display = 'block';
+      a2.addEventListener('click', () => resolve(true));
+    }
+
+    function stepTwo(result) {
+      if (result) {
+        q2.style.display = 'none';
+        q3.style.display = 'block';
+        submit.style.display = 'block';
+      } else {
+        alert('something went wrong');
+      }
+    }
+
+    function flowThroughQuiz() {
+      let promise = new Promise((resolve) => {
+        stepOne(resolve);
+      });
+      promise.then((result) => stepTwo(result))
+      .then(() => setTimeout(() => alert('okay'), 3000));
+    }
+
+    startingState();
+    a1.addEventListener('click', () => flowThroughQuiz());
+
+  </script>
+
+</body>
+</html>
