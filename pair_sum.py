@@ -22,12 +22,13 @@ def has_sum(nums, k):
 
 
 def find_triple_sums(nums, k):
-    """Returns all sets of 3 elements that sum to k.
+    """Returns all sets of 3 elements that sum to k. O(n^3) runtime.
 
     >>> find_triple_sums([1,2,3], 6)
     [[1, 2, 3]]
     >>> find_triple_sums([1,2,3,6,7], 10)
     [[1, 2, 7], [1, 3, 6]]
+
     """
 
     triple_sets = []
@@ -39,3 +40,34 @@ def find_triple_sums(nums, k):
                     triple_sets.append([num, alt, third])
 
     return triple_sets
+
+
+def find_triplets(nums, k):
+    """Returns all triplets that sum to k. O(n^2) runtime.
+
+    >>> find_triplets([1,2,3], 6)
+    [[1, 2, 3]]
+    >>> find_triplets([1,2,3,6,7], 10)
+    [[1, 2, 7], [1, 3, 6]]
+
+    """
+
+    triplets = []
+
+    nums.sort()
+
+    for i in range(len(nums) - 2):
+        l = i + 1
+        r = len(nums) - 1
+
+        while l < r:
+            if nums[i] + nums[l] + nums[r] == k:
+                triplets.append([nums[i], nums[l], nums[r]])
+                l += 1
+                r -= 1
+            elif nums[i] + nums[l] + nums[r] < k:
+                l += 1
+            else:
+                r -= 1
+
+    return triplets
