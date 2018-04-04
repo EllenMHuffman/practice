@@ -6,8 +6,8 @@ from collections import defaultdict
 def find_anagrams(words):
     """Returns lists of words that are anagrams of each other.
 
-    >>> find_anagrams(['bus', 'sub', 'pythonic', 'hypnotic'])
-    >>> [['bus' 'sub'], ['pythonic', 'hypnotic']]
+    >>> find_anagrams(['bus', 'sub', 'pythonic', 'hypnotic', 'sbu', 'bird'])
+    [['bus', 'sub', 'sbu'], ['pythonic', 'hypnotic']]
 
     """
 
