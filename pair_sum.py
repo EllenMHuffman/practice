@@ -21,6 +21,33 @@ def has_sum(nums, k):
     return False
 
 
+def has_sum_optimized(nums, k):
+    """Determines whether two numbers sum to given number k.
+
+    >>> has_sum_optimized([1,2,3,4,5,2], 4)
+    True
+    >>> has_sum_optimized([2,3,4,5], 4)
+    False
+    >>> has_sum_optimized([1,2,3], 10)
+    False
+
+    """
+
+    nums.sort()
+    l = 0
+    r = len(nums) - 1
+
+    while l < r:
+        if nums[l] + nums[r] == k:
+            return True
+        elif nums[l] + nums[r] < k:
+            l += 1
+        else:
+            r -= 1
+
+    return False
+
+
 def find_triple_sums(nums, k):
     """Returns all sets of 3 elements that sum to k. O(n^3) runtime.
 
